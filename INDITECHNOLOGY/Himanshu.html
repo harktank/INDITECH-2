@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comment Section UI</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      }
+
+      body {
+        background-color: #fff;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 15px;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #e6e6e6;
+        margin-bottom: 20px;
+      }
+
+      .tab {
+        padding: 10px 0;
+        margin-right: 25px;
+        font-weight: 500;
+        color: #555;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .tab.active {
+        color: #0066cc;
+        border-bottom: 2px solid #0066cc;
+        font-weight: 600;
+      }
+
+      .comment-form {
+        display: flex;
+        margin-bottom: 25px;
+        border: 1px solid #e6e6e6;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .comment-input {
+        flex-grow: 1;
+        border: none;
+        padding: 15px;
+        font-size: 15px;
+        outline: none;
+      }
+
+      .comment-button {
+        padding: 15px 25px;
+        background-color: #f4f4f4;
+        border: none;
+        color: #999;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .comments {
+        position: relative;
+      }
+
+      /* Each top-level comment */
+      .comment {
+        display: flex;
+        position: relative;
+        margin-bottom: 15px;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .comment-content {
+        flex-grow: 1;
+      }
+
+      .comment-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+
+      .username {
+        font-weight: 600;
+        color: #333;
+        margin-right: 10px;
+      }
+
+      .timestamp {
+        color: #888;
+        font-size: 14px;
+      }
+
+      .comment-text {
+        margin-bottom: 10px;
+        color: #333;
+        font-size: 15px;
+      }
+
+      .comment-actions {
+        display: flex;
+        align-items: center;
+      }
+
+      .like-count {
+        display: flex;
+        align-items: center;
+        margin-right: 10px;
+        color: #666;
+      }
+
+      .like-icon {
+        margin-right: 5px;
+        color: #666;
+      }
+
+      .reply-button {
+        color: #0066cc;
+        font-weight: 500;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-size: 14px;
+      }
+
+      /* Container for replies (with vertical line from the parent comment) */
+      .comment-replies {
+        position: relative;
+        margin-left: 55px;
+      }
+
+      /* Each reply inside .comment-replies */
+      .reply {
+        display: flex;
+        margin-top: 15px;
+        position: relative;
+      }
+
+      /* Curved line from left to parent's avatar line */
+      .connector {
+        position: absolute;
+        left: -35px;
+        top: -15px;
+        width: 30px;
+        height: 30px;
+        border-left: 2px solid #e6e6e6;
+        border-bottom: 2px solid #e6e6e6;
+        border-bottom-left-radius: 12px;
+      }
+
+      /* The vertical line from a parent comment's avatar down to its replies */
+      .comment-connect {
+        position: absolute;
+        left: 20px;
+        top: 40px;
+        height: 60%;
+        width: 2px;
+        background-color: #e6e6e6;
+        z-index: -1;
+      }
+
+      /* "Show more replies" link */
+      .show-more {
+        margin-left: 55px;
+        display: flex;
+        align-items: center;
+        color: #666;
+        font-size: 14px;
+        margin-top: 5px;
+        cursor: pointer;
+      }
+
+      .show-more-icon {
+        width: 20px;
+        height: 20px;
+        background-color: #f4f4f4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+        font-size: 12px;
+        color: #666;
+        position: relative;
+      }
+      .show-more-icon::before {
+        content: '';
+        position: absolute;
+        left: -35px;
+        top: -50px;
+        width: 30px;
+        height: 60px;
+        border-left: 2px solid #e6e6e6;
+        border-bottom: 2px solid #e6e6e6;
+        border-bottom-left-radius: 12px;
+      }
+
+      /* Inline reply form */
+      .reply-form {
+        display: flex;
+        margin-top: 10px;
+      }
+      .reply-input {
+        flex-grow: 1;
+        padding: 10px;
+        font-size: 14px;
+      }
+      .reply-submit {
+        padding: 10px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="tabs">
+        <div class="tab active">Thoughts(25)</div>
+        <div class="tab">Top Holders</div>
+        <div class="tab">Activity</div>
+      </div>
+
+      <div class="comment-form">
+        <input type="text" class="comment-input" placeholder="Add a comment" />
+        <button class="comment-button">Post</button>
+      </div>
+
+      <div class="comments">
+        <!-- Comments will be rendered here dynamically -->
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // -----------------------------------------
+        // 1. DATA
+        // -----------------------------------------
+        let commentsData = [
+          {
+            id: 1,
+            username: 'Rodrickjesferhadley',
+            avatar:
+              'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+            timestamp: '2 hr ago',
+            text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit Ut et massa mi. Aliquam in hendrerit urna.',
+            likes: 38,
+            replies: [
+              {
+                id: 11,
+                username: 'jesferhadley',
+                avatar:
+                  'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+                timestamp: '2 hr ago',
+                text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit Ut et massa mi. Aliquam in hendrerit urna.',
+                likes: 38,
+                replies: [],
+              },
+              {
+                id: 12,
+                username: 'jesferhadley',
+                avatar:
+                  'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+                timestamp: '2 hr ago',
+                text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit Ut et massa mi. Aliquam in hendrerit urna.',
+                likes: 38,
+                replies: [
+                  {
+                    id: 13,
+                    username: 'jesferhadley',
+                    avatar:
+                      'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+                    timestamp: '2 hr ago',
+                    text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit Ut et massa mi. Aliquam in hendrerit urna.',
+                    likes: 38,
+                    replies: [],
+                  },
+                ],
+              },
+
+              // Additional replies can be added here
+            ],
+            showAllReplies: false,
+          },
+          {
+            id: 2,
+            username: 'Rodrickjesferhadley',
+            avatar:
+              'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+            timestamp: '2 hr ago',
+            text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit Ut et massa mi. Aliquam in hendrerit urna.',
+            likes: 38,
+            replies: [],
+            showAllReplies: false,
+          },
+        ];
+
+        // -----------------------------------------
+        // 2. DOM ELEMENTS
+        // -----------------------------------------
+        const commentsContainer = document.querySelector('.comments');
+        const commentFormInput = document.querySelector('.comment-input');
+        const commentPostButton = document.querySelector('.comment-button');
+
+        // -----------------------------------------
+        // 3. FIND COMMENT BY ID (RECURSIVE)
+        // -----------------------------------------
+        function findCommentById(list, id) {
+          for (const item of list) {
+            if (item.id === id) return item;
+            if (item.replies && item.replies.length > 0) {
+              const found = findCommentById(item.replies, id);
+              if (found) return found;
+            }
+          }
+          return null;
+        }
+
+        // -----------------------------------------
+        // 4. RENDER A SINGLE COMMENT OR REPLY
+        //    This function returns a DOM element.
+        // -----------------------------------------
+        function renderSingleComment(comment, isTopLevel = true, index = 0) {
+          // The wrapper for this comment (top-level or a reply)
+          const commentEl = document.createElement('div');
+          commentEl.className = isTopLevel ? 'comment' : 'reply';
+
+          // If top-level and not the first comment, add marginTop=25px for spacing
+          if (isTopLevel && index !== 0) {
+            commentEl.style.marginTop = '25px';
+          }
+
+          // If it's a reply, add the .connector inside it (curved corner)
+          let connectorHTML = '';
+          if (!isTopLevel) {
+            connectorHTML = `<div class="connector"></div>`;
+          }
+
+          // Build the inner HTML for the comment
+          commentEl.innerHTML = `
+            ${connectorHTML}
+            <div class="avatar">
+              <img src="${comment.avatar}" alt="User avatar" />
+            </div>
+            <div class="comment-content" data-id="${comment.id}">
+              <div class="comment-header">
+                <div class="username">${comment.username}</div>
+                <div class="timestamp">${comment.timestamp}</div>
+              </div>
+              <div class="comment-text">${comment.text}</div>
+              <div class="comment-actions">
+                <div class="like-count">
+                  <span class="like-icon">👍</span>
+                  ${comment.likes}
+                </div>
+                <button class="reply-button" data-id="${comment.id}">Reply</button>
+              </div>
+            </div>
+          `;
+
+          return commentEl;
+        }
+
+        // -----------------------------------------
+        // 5. RENDER REPLIES (if any)
+        //    This returns the .comment-connect line
+        //    and the .comment-replies container
+        // -----------------------------------------
+        function renderReplies(comment) {
+          // If there are no replies, do nothing
+          if (!comment.replies || comment.replies.length === 0) return null;
+
+          // Create vertical line under the parent comment
+          const connectLine = document.createElement('div');
+          connectLine.className = 'comment-connect';
+
+          // The container for all child replies
+          const repliesContainer = document.createElement('div');
+          repliesContainer.className = 'comment-replies';
+
+          // Show only the first reply unless showAllReplies is true
+          let repliesToShow = comment.showAllReplies
+            ? comment.replies
+            : comment.replies.slice(0, 1);
+
+          repliesToShow.forEach((reply, idx) => {
+            const replyEl = renderSingleComment(reply, false, idx);
+            repliesContainer.appendChild(replyEl);
+
+            // Recursively render nested replies if any
+            const deeperConnect = renderReplies(reply);
+            if (deeperConnect) {
+              repliesContainer.appendChild(deeperConnect);
+            }
+          });
+
+          // If more replies exist than shown, add a "show more" button
+          if (comment.replies.length > 1 && !comment.showAllReplies) {
+            const showMoreEl = document.createElement('div');
+            showMoreEl.className = 'show-more';
+            showMoreEl.innerHTML = `
+              <span class="show-more-icon">+</span>
+              ${comment.replies.length - 1} more reply${
+              comment.replies.length - 1 > 1 ? 'ies' : ''
+            }
+            `;
+            showMoreEl.addEventListener('click', function () {
+              comment.showAllReplies = true;
+              renderComments();
+            });
+            repliesContainer.appendChild(showMoreEl);
+          }
+
+          // Wrap the connect line + replies in a fragment
+          const fragment = document.createDocumentFragment();
+          fragment.appendChild(connectLine);
+          fragment.appendChild(repliesContainer);
+
+          return fragment;
+        }
+
+        // -----------------------------------------
+        // 6. MAIN RENDER FUNCTION
+        // -----------------------------------------
+        function renderComments() {
+          commentsContainer.innerHTML = '';
+
+          commentsData.forEach((comment, idx) => {
+            // Render the top-level comment
+            const commentEl = renderSingleComment(comment, true, idx);
+            commentsContainer.appendChild(commentEl);
+
+            // If it has replies, render them
+            const repliesFragment = renderReplies(comment);
+            if (repliesFragment) {
+              commentsContainer.appendChild(repliesFragment);
+            }
+          });
+
+          attachReplyEvents();
+        }
+
+        // -----------------------------------------
+        // 7. ATTACH EVENT LISTENERS TO REPLY BUTTONS
+        // -----------------------------------------
+        function attachReplyEvents() {
+          const replyButtons = document.querySelectorAll('.reply-button');
+          replyButtons.forEach((btn) => {
+            btn.removeEventListener('click', handleReplyClick);
+            btn.addEventListener('click', handleReplyClick);
+          });
+        }
+
+        // -----------------------------------------
+        // 8. REPLY BUTTON HANDLER
+        //    - Toggle between "Reply" and "Cancel"
+        //    - Insert or remove inline reply form
+        // -----------------------------------------
+        function handleReplyClick(e) {
+          const button = e.target;
+          const commentId = parseInt(button.getAttribute('data-id'));
+          const commentContent = button.closest('.comment-content');
+
+          // Check if there's already a reply form
+          let existingForm = commentContent.querySelector('.reply-form');
+          if (existingForm) {
+            // If the form is there, remove it (cancel)
+            existingForm.remove();
+            button.textContent = 'Reply';
+            return;
+          }
+
+          // Otherwise, create a new reply form
+          button.textContent = 'Cancel';
+          const replyForm = document.createElement('div');
+          replyForm.className = 'reply-form';
+          replyForm.innerHTML = `
+            <input type="text" class="reply-input" placeholder="Add a reply" />
+            <button class="reply-submit">Submit</button>
+          `;
+          commentContent.appendChild(replyForm);
+
+          // Handle the "Submit" click
+          replyForm
+            .querySelector('.reply-submit')
+            .addEventListener('click', function () {
+              const input = replyForm.querySelector('.reply-input');
+              const replyText = input.value.trim();
+              if (!replyText) return;
+
+              const newReply = {
+                id: Date.now(),
+                username: 'CurrentUser',
+                avatar:
+                  'https://imgs.search.brave.com/PCTWoAQkbEl5eTC1imEEVFegBiKiVE1xxSLTZHagDR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wcmV2/aWV3LnJlZGQuaXQv/a2luLWF2YXRhci1w/aG90by12MC1sZTZi/czlwcGx1OWMxLmpw/ZWc_d2lkdGg9NDA5/NiZmb3JtYXQ9cGpw/ZyZhdXRvPXdlYnAm/cz03M2JjYjJhYTg5/MWRkYzQ4MDU3MGFl/YjY1NzY2Yjc0M2Q0/NDAxZjIz',
+                timestamp: 'Just now',
+                text: replyText,
+                likes: 0,
+                replies: [],
+              };
+
+              // Find the comment object at any level
+              const parentComment = findCommentById(commentsData, commentId);
+              if (parentComment) {
+                parentComment.replies.push(newReply);
+                parentComment.showAllReplies = true; // show all replies after adding a new one
+              }
+
+              renderComments();
+            });
+        }
+
+        // -----------------------------------------
+        // 9. POST A NEW TOP-LEVEL COMMENT
+        // -----------------------------------------
+        commentPostButton.addEventListener('click', function () {
+          const text = commentFormInput.value.trim();
+          if (!text) return;
+
+          const newComment = {
+            id: Date.now(),
+            username: 'CurrentUser',
+            avatar: 'https://placehold.co/600x400?text=',
+            timestamp: 'Just now',
+            text: text,
+            likes: 0,
+            replies: [],
+            showAllReplies: false,
+          };
+          commentsData.push(newComment);
+          commentFormInput.value = '';
+          renderComments();
+        });
+
+        // -----------------------------------------
+        // 10. INITIAL RENDER
+        // -----------------------------------------
+        renderComments();
+      });
+    </script>
+  </body>
+</html>
